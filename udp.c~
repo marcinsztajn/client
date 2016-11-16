@@ -4,41 +4,77 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <stdlib.h>
 
-int main(){
-  int clientSocket, portNum, nBytes;
-  char buffer[1024];
-  struct sockaddr_in serverAddr;
-  socklen_t addr_size;
+char dod[] = "dodawanie";
+char mno[] = "mnozenie";
+char odej[] = "odejmowanie";
+char dzie[] = "dzielenie";
+double operacja;
+int er;
 
-  /*Create UDP socket*/
-  clientSocket = socket(PF_INET, SOCK_DGRAM, 0);
+int main(int argc, char* argv[]) {
+	int clientSocket = 0;
+	int nBytes;
 
-  /*Configure settings in address struct*/
-  serverAddr.sin_family = AF_INET;
-  serverAddr.sin_port = htons(7891);
-  serverAddr.sin_addr.s_addr = inet_addr("192.168.119.46");
-  memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
+	double buffer[1024];
+	double wynik;
 
-  /*Initialize size variable to be used later on*/
-  addr_size = sizeof serverAddr;
+	struct sockaddr_in serverAddr;
+	socklen_t addr_size;
 
-  while(1){
-    printf("Type a sentence to send to server:\n");
-    fgets(buffer,1024,stdin);
-    printf("You typed: %s",buffer);
+	/*Create UDP socket*/
+	clientSocket = socket(PF_INET, SOCK_DGRAM, 0);
 
-    nBytes = strlen(buffer) + 1;
-    
-    /*Send message to server*/
-    sendto(clientSocket,buffer,nBytes,0,(struct sockaddr *)&serverAddr,addr_size);
+	/*Configure settings in address struct*/
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_port = htons(7891);
+	serverAddr.sin_addr.s_addr = inet_addr("192.168.119.16");
+	memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
 
-    /*Receive message from server*/
-                nBytes = recvfrom(clientSocket,buffer,1024,0,NULL, NULL);
+	/*Initialize size variable to be used later on*/
+	addr_size = sizeof(serverAddr);
 
-    printf("Received from server: %s\n",buffer);
+	if (strcmp(dod, argv[3]) == 0) {
+		operacja = 1.0;
+	}
+	if (strcmp(odej, argv[3]) == 0) {
+		operacja = 2.0;
+	}
+	if (strcmp(mno, argv[3]) == 0) {
+		operacja = 3.0;
+	}
+	if (strcmp(dzie, argv[3]) == 0) {
+		operacja = 4.0;
+	}
+	printf("Podane argumenty: %s %s %s\n", argv[1], argv[2], argv[3]);
 
-  }
+	buffer[0] = atof(argv[1]);
+	buffer[1] = atof(argv[2]);
+	buffer[2] = operacja;
 
-  return 0;
+//while(1){
+
+	/*Send message to server*/
+	er = sendto(clientSocket, buffer, sizeof(buffer), 0,
+			(struct sockaddr *) &serverAddr, addr_size);
+	if(er==-1){
+		perror( "sendto() ERROR" );		//kontrola błędów
+		exit( - 1 );
+	}
+
+	/*Receive message from server*/
+	nBytes = recvfrom(clientSocket, &wynik, sizeof(wynik), 0, NULL, NULL);
+	if(nBytes==-1){
+			perror( "recvfrom() ERROR" );
+			exit( - 1 );
+		}
+	printf("Wynik operacji arytmetycznej: %.3f \n", wynik);
+
+	close(clientSocket);
+//}
+
+	return 0;
 }
+
+

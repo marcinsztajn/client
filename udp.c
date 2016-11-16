@@ -58,11 +58,18 @@ int main(int argc, char* argv[]) {
 	/*Send message to server*/
 	er = sendto(clientSocket, buffer, sizeof(buffer), 0,
 			(struct sockaddr *) &serverAddr, addr_size);
-	printf("sendto - kontrola błędów : %d\n", er);
+	if(er==-1){
+		perror( "sendto() ERROR" );		//kontrola błędów
+		exit( - 1 );
+	}
+
 	/*Receive message from server*/
 	nBytes = recvfrom(clientSocket, &wynik, sizeof(wynik), 0, NULL, NULL);
-
-	printf("Wynik operacji arytmetycznej: %f \n", wynik);
+	if(nBytes==-1){
+			perror( "recvfrom() ERROR" );
+			exit( - 1 );
+		}
+	printf("Wynik operacji arytmetycznej: %.3f \n", wynik);
 
 	close(clientSocket);
 //}
